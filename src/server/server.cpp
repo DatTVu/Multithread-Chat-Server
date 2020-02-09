@@ -15,6 +15,7 @@
 #define PORT "5000"  // the port users will be connecting to
 
 #define BACKLOG 10	 // how many pending connections queue will hold
+#define MAXDATASIZE 1024 // max bytes can be received every recv()
 
 int main(void)
 {
@@ -26,6 +27,8 @@ int main(void)
 	int yes=1;
 	char s[INET6_ADDRSTRLEN];
 	int rv;
+	char buf[MAXDATASIZE];
+	int numbytes;
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
@@ -96,9 +99,26 @@ int main(void)
 		printf("server: got connection from %s\n", s);
 
 		if (!fork()) { // this is the child process
-			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, "Hello, world!", 13, 0) == -1)
-				perror("send");
+			//close(sockfd); // child doesn't need the listener
+			//if (send(new_fd, "Hello, world!", 13, 0) == -1)
+			//	perror("send");
+			//close(new_fd);
+			close(sockfd);
+			if ((numbytes=recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1){
+				perror("recv");
+				exit(1);
+			}
+			buf[numbytes] = '\0';
+			printf("Message received: %s\n", buf);
+			while(strcmp(buf, "QUIT") != 0){
+			
+				if ((numbytes=recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1){
+					perror("recv");
+					exit(1);
+				}	
+				buf[numbytes] = '\0';
+				printf("Message received: %s\n", buf);
+			}
 			close(new_fd);
 			exit(0);
 		}

@@ -11,8 +11,8 @@
 #include "../utilities/utils.h"
 
 #define PORT "5000" // the port client will be connecting to
-
 #define MAXDATASIZE 1024 //max number of bytes we can send at once
+
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	struct addrinfo hints, *serv_info, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
-
+	
 	if(argc !=2){
 		fprintf(stderr, "usage: client hostname\n");
 		exit(1);
@@ -56,20 +56,23 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "client: failed to connect\n");
 		return 2;
 	}
-
+	
+	
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof(s));
 	printf("client: connecting to %s\n", s);
 
 	freeaddrinfo(serv_info); // all done with this structure
 
-	if((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0))==-1){
-		perror("recv");
-		exit(1);
-	}
-
-	buf[numbytes] = '\0';
-
-	printf("client: received '%s'\n", buf);
+	printf("Enter a message to send to server!\n");
+	fgets(buf, MAXDATASIZE, stdin);
+	while(strcmp(buf, "Quit") !=0){
+		if((numbytes = send(sockfd, "Hello from Client!", 19, 0))==-1){
+			perror("send");
+			exit(1);
+		}
+		printf("Enter a message to send to server!\n");
+		fgets(buf, MAXDATASIZE, stdin);
+	}	
 
 	close(sockfd);
 	
