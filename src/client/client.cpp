@@ -7,21 +7,12 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
 #include <arpa/inet.h>
+#include "../utilities/utils.h"
 
 #define PORT "5000" // the port client will be connecting to
 
 #define MAXDATASIZE 1024 //max number of bytes we can send at once
-
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa){
-	if(sa->sa_family = AF_INET){
-		return &(((struct sockaddr_in*)sa)->sin_addr);
-	}
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
-
-}
 
 int main(int argc, char *argv[])
 {
