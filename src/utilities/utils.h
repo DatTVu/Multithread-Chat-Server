@@ -6,6 +6,7 @@
 #define MAXDATASIZE 1024 // max number of bytes we can send at once
 #define BACKLOG 10 //max number of thread server can create for thread pools
 #define SOCKET_ERROR (-1) //most error with socket handling will return -1
+#define THREAD_POOL_SIZE 10
 
 
 void *get_in_addr(struct sockaddr *sa){

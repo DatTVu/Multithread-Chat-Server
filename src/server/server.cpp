@@ -12,7 +12,13 @@
 #include <signal.h>
 #include "../utilities/utils.h"
 #include <pthread.h>
+#include "../utilities/myqueue.h"
+pthread_t thread_pool[THREAD_POOL_SIZE];
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
 void *handle_connection(void* client_socket);
+void* thread_function(void *arg);
+
 int main(void)
 {
 	int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
@@ -24,6 +30,11 @@ int main(void)
 	int rv;
 	char buf[MAXDATASIZE];
 	int numbytes;
+
+	for (int i= 0; i < THREAD_POOL_SIZE; i++){
+		pthread_create(&thread_pool[i], NULL, &thread_function,NULL);
+	}
+	
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -72,8 +83,6 @@ int main(void)
 
 	printf("server: waiting for connections...\n");
 
-
-
 	while(1) {  // main accept() loop
 		
 		sin_size = sizeof(their_addr);
@@ -85,11 +94,12 @@ int main(void)
 
 		inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof(s));
 		printf("server: got connection from %s\n", s);
-		//handle_connection(new_fd);
 		int *pclient = (int*)malloc(sizeof(int));
 		*pclient = new_fd;
-		pthread_t t;
-		pthread_create(&t, NULL, handle_connection, pclient);
+		pthread_mutex_lock(&mutex);
+		enqueue(pclient);
+		pthread_cond_signal(&condition_var);
+		pthread_mutex_unlock(&mutex);
 	}
 	return 0;
 }
@@ -105,8 +115,25 @@ void *handle_connection(void* p_client_socket){
 			break;
 		}		
 		buf[result] = '\0';
-		printf("\nMessage received: %s", buf);
+		printf("%s", buf);
 	}
 	return NULL;
+}
+
+void * thread_function(void *arg){
+	while(true){
+		int *pclient;
+		pthread_mutex_lock(&mutex);
+		if ((pclient = dequeue())==NULL){
+			pthread_cond_wait(&condition_var, &mutex);
+			pclient = dequeue();
+		}
+		pthread_mutex_unlock(&mutex);
+		
+		if (pclient != NULL){
+			//we have a connection
+			handle_connection(pclient);
+		}
+	}
 }
 
