@@ -90,10 +90,12 @@ int main(void)
 
 void handle_connection(int client_socket){
 	char buf[MAXDATASIZE];
-	if (recv(client_socket, buf, sizeof(buf), 0) == -1){
+	int result = recv(client_socket, buf, sizeof(buf), 0);
+	if (result == -1 || result == 0){
 		perror("recv");
 		exit(1);
-	}	
+	}		
+	printf("number of bytes recv: %d", result);
 	printf("Message received: %s\n", buf);
 	if(strcmp(buf, "quit") == 0)
 		exit(1);	
