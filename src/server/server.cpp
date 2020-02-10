@@ -11,26 +11,20 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "../utilities/utils.h"
-
-#define PORT "5000"  // the port users will be connecting to
-
-#define BACKLOG 10	 // how many pending connections queue will hold
-#define MAXDATASIZE 1024 // max bytes can be received every recv()
-
+void handle_connection(int client_socket);
 int main(void)
 {
 	int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
 	struct addrinfo hints, *servinfo, *p;
 	struct sockaddr_storage their_addr; // connector's address information
 	socklen_t sin_size;
-	struct sigaction sa;
 	int yes=1;
 	char s[INET6_ADDRSTRLEN];
 	int rv;
 	char buf[MAXDATASIZE];
 	int numbytes;
 
-	memset(&hints, 0, sizeof hints);
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
@@ -75,56 +69,33 @@ int main(void)
 		exit(1);
 	}
 
-	sa.sa_handler = sigchld_handler; // reap all dead processes
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-		perror("sigaction");
+	printf("server: waiting for connections...\n");
+
+
+	sin_size = sizeof(their_addr);
+	new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+	if (new_fd == -1) {
+		perror("accept");
 		exit(1);
 	}
 
-	printf("server: waiting for connections...\n");
+	inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof(s));
+	printf("server: got connection from %s\n", s);
 
 	while(1) {  // main accept() loop
-		sin_size = sizeof their_addr;
-		new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-		if (new_fd == -1) {
-			perror("accept");
-			continue;
-		}
-
-		inet_ntop(their_addr.ss_family,
-			get_in_addr((struct sockaddr *)&their_addr),
-			s, sizeof s);
-		printf("server: got connection from %s\n", s);
-
-		if (!fork()) { // this is the child process
-			//close(sockfd); // child doesn't need the listener
-			//if (send(new_fd, "Hello, world!", 13, 0) == -1)
-			//	perror("send");
-			//close(new_fd);
-			close(sockfd);
-			if ((numbytes=recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1){
-				perror("recv");
-				exit(1);
-			}
-			buf[numbytes] = '\0';
-			printf("Message received: %s\n", buf);
-			while(strcmp(buf, "QUIT") != 0){
-			
-				if ((numbytes=recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1){
-					perror("recv");
-					exit(1);
-				}	
-				buf[numbytes] = '\0';
-				printf("Message received: %s\n", buf);
-			}
-			close(new_fd);
-			exit(0);
-		}
-		close(new_fd);  // parent doesn't need this
+		handle_connection(new_fd);	
 	}
-
 	return 0;
+}
+
+void handle_connection(int client_socket){
+	char buf[MAXDATASIZE];
+	if (recv(client_socket, buf, sizeof(buf), 0) == -1){
+		perror("recv");
+		exit(1);
+	}	
+	printf("Message received: %s\n", buf);
+	if(strcmp(buf, "quit") == 0)
+		exit(1);	
 }
 

@@ -10,13 +10,9 @@
 #include <arpa/inet.h>
 #include "../utilities/utils.h"
 
-#define PORT "5000" // the port client will be connecting to
-#define MAXDATASIZE 1024 //max number of bytes we can send at once
-
-
 int main(int argc, char *argv[])
 {
-	int sockfd, numbytes;
+	int sockfd, result;
 	char buf[MAXDATASIZE];
 	struct addrinfo hints, *serv_info, *p;
 	int rv;
@@ -35,7 +31,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
-
+	int retryCount = 3;
 	// loop through all the results and connect to the first we can
 	for(p = serv_info; p!=NULL; p = p->ai_next){
 		if((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
@@ -62,20 +58,28 @@ int main(int argc, char *argv[])
 	printf("client: connecting to %s\n", s);
 
 	freeaddrinfo(serv_info); // all done with this structure
+	while(retryCount >0)
+	{
+		printf("\n\tEnter your message!");
+		fgets(buf, sizeof(buf),stdin);
+		if(strcmp(buf, "quit") == 0){
+				printf("Ok! Quitting!");
+				send(sockfd, buf, sizeof(buf), 0);
+				retryCount = 0;
+				}
+		else{
 
-	printf("Enter a message to send to server!\n");
-	fgets(buf, MAXDATASIZE, stdin);
-	while(strcmp(buf, "Quit") !=0){
-		if((numbytes = send(sockfd, "Hello from Client!", 19, 0))==-1){
-			perror("send");
-			exit(1);
+			result = send(sockfd, buf, sizeof(buf), 0);
+			if (result !=-1) continue;
+			else{
+				int time = 2000;
+				printf("\n\tCannot connect to SERVER! Retrying in %d", time);
+				--retryCount;
+			}
 		}
-		printf("Enter a message to send to server!\n");
-		fgets(buf, MAXDATASIZE, stdin);
-	}	
 
+	}
 	close(sockfd);
-	
 	return 0;
 }
 
