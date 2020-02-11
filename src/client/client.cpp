@@ -61,20 +61,20 @@ int main(int argc, char *argv[])
 	while(retryCount >0)
 	{
 		printf("\n\tEnter your message!");
-		fgets(buf, sizeof(buf),stdin);
-		if(strcmp(buf, "quit") == 0){
-				printf("Ok! Quitting!");
+		fgets(buf, sizeof(buf),stdin); // get user input from stdin
+		if(strcmp(buf, "quit") == 0){ //if the command is quit -> quit and close the socket
+				printf("Ok! Quitting!"); // this is currently not working for some reason
 				send(sockfd, buf, sizeof(buf), 0);
 				retryCount = 0;
 				}
 		else{
-
 			result = send(sockfd, buf, sizeof(buf), 0);
 			if (result !=-1) continue;
 			else{
 				int time = 2000;
 				printf("\n\tCannot connect to SERVER! Retrying in %d", time);
 				--retryCount;
+				//a sleep function or wait function here to simulate the retry
 			}
 		}
 
