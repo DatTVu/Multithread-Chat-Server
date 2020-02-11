@@ -12,19 +12,14 @@ sockets, TCP/IP protocols, p_threads, mutex and conditional variables to program
 3. Folder structure:
 src
 
-/server
+/server/server.cpp
 
-|      /server.cpp
+/client/client.cpp
 
-/client
+/utilities/utils.h
 
-|      /client.cpp
+/utilities/myqueue.h
 
-/utilities/
-
-|       utils.h
-
-|       myqueue.h
 
 README.md
 
