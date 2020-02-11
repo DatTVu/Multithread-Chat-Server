@@ -21,7 +21,7 @@ src
     /utilities/myqueue.h
 
 
-README.md
+    README.md
 
 4. To build:
 + Client: navigate to client directory and use the following command:
