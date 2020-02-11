@@ -4,18 +4,28 @@ This is a simple multithreaded server demo. Included is source code for client a
 sockets, TCP/IP protocols, p_threads, mutex and conditional variables to program a multithreaded server.
 
 2. Requirements:
+
 [] Ubuntu 18.04
+
 [] GCC 7.04
 
 3. Folder structure:
 src
+
 /server
+
 |      /server.cpp
+
 /client
+
 |      /client.cpp
+
 /utilities/
+
 |       utils.h
+
 |       myqueue.h
+
 README.md
 
 4. To build:
