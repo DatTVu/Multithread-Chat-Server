@@ -5,20 +5,20 @@ sockets, TCP/IP protocols, p_threads, mutex and conditional variables to program
 
 2. Requirements:
 
-[] Ubuntu 18.04
++ Ubuntu 18.04
 
-[] GCC 7.04
++ GCC 7.04
 
 3. Folder structure:
 src
 
-/server/server.cpp
+    /server/server.cpp
 
-/client/client.cpp
+    /client/client.cpp
 
-/utilities/utils.h
+    /utilities/utils.h
 
-/utilities/myqueue.h
+    /utilities/myqueue.h
 
 
 README.md
