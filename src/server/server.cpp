@@ -1,3 +1,4 @@
+#define _GLIBCXX_USE_CXX11_ABI 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,6 +14,10 @@
 #include "../utilities/utils.h"
 #include <pthread.h>
 #include "../utilities/myqueue.h"
+#include <vector>
+#include <string>
+
+std::vector<std::string> result_; //a vector to store all message sent to server
 pthread_t thread_pool[THREAD_POOL_SIZE]; // creat a thread pools
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // init a mutex, this mutex is used later to makesure there is no race condition.
 pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER; // conditional variable to signal the thread in thread pools
@@ -109,6 +114,7 @@ void *handle_connection(void* p_client_socket){
 	int client_socket = *(int*)p_client_socket; //grab the client file descriptor, deferrence it to a local variable
 	free(p_client_socket); //client file descriptor is now stored locally, we don't need the pointer anymore, free it to avoid memory leak
 	char buf[MAXDATASIZE];
+	std::string converter;
 	while(1){
 		int result = recv(client_socket, buf, sizeof(buf), 0); //continously receive package from client
 		if (result == -1 || result == 0){ // if there is an error then stop working, put the thread back to sleep
@@ -117,6 +123,11 @@ void *handle_connection(void* p_client_socket){
 		}		
 		buf[result] = '\0'; // null terminate the message received
 		printf("%s", buf); // print out the message received
+		converter = buf;
+
+		pthread_mutex_lock(&mutex); //lock the mutex again
+		result_.push_back(converter); // push the message memory
+		pthread_mutex_unlock(&mutex); //unlock the memory
 	}
 	return NULL; // need to return a void pointer to match function return type when the function finishes its job
 }
