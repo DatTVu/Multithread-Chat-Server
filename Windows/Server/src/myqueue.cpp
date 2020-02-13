@@ -7,7 +7,7 @@ void enqueue(SOCKET* client_socket) {
 	newnode->client_socket = client_socket;
 	newnode->next = NULL;
 	if (tail == NULL) {
-		tail = newnode;
+		head = newnode;
 	}
 	else {
 		tail->next = newnode;

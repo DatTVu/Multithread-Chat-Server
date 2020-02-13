@@ -41,7 +41,8 @@ void main()
 		SUCCESSFUL=send(sock, myMessage, sizeof(myMessage), 0);
 			if (SUCCESSFUL != -1)
 			{
-				cout << "\n\tMessage from SERVER:\n\n\t" << CONVERTER << endl;
+				recv(sock, myMessage, sizeof(myMessage), 0);
+				cout << "\n\tMessage from SERVER:\n\n\t" << myMessage << endl;
 				continue;
 			}
 			else

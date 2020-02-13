@@ -24,7 +24,7 @@ struct message {
 
 struct message myMassage_;
 
-//std::thread thread_pool_[THREAD_POOL_SIZE];
+std::thread thread_pool_[THREAD_POOL_SIZE];
 std::mutex mutex_;
 std::condition_variable condition_var_;
 
@@ -42,9 +42,9 @@ int main()
     //Start Winsock DLL
     SUCCESSFUL = WSAStartup(DLLVERSION, &WinSockData);
 
-	//for (int i = 0; i < THREAD_POOL_SIZE; i++) {
-		//thread_pool_[i] = std::thread(thread_function);
-	//}
+	for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+		thread_pool_[i] = std::thread(thread_function);
+	}
     //Create Socket Structure
 	SOCKADDR_IN ADDRESS;
     int AddressSize = sizeof(ADDRESS);
@@ -95,11 +95,15 @@ void handle_connection(SOCKET *client_socket) {
 	char buffer[BUFSIZE];
 	SOCKET clientfd = *client_socket;
 	free(client_socket);
-	int msg_size = 0;
-	long result;
-	result = recv(clientfd, buffer, sizeof(buffer), NULL);
-	send(clientfd, buffer, sizeof(buffer), NULL);
-	//std::unique_lock<std::mutex> lock_(mutex_);
+	while (true) {
+		int result;
+		result = recv(clientfd, buffer, sizeof(buffer), NULL);
+		if (result == -1 || result == 0) { // if there is an error then stop working, put the thread back to sleep
+			perror("recv");
+			break;
+		}
+		send(clientfd, buffer, sizeof(buffer), NULL);
+	}
 }
 
 void* thread_function() {
